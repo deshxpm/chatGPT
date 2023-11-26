@@ -60,7 +60,7 @@ class PromptHistory(models.Model):
     user_prompt = models.TextField(blank=False, null=False)
     gpt_response = models.TextField(blank=False, null=False)
 
-RESION_TYPE = (('icd','ICD'))
+RESION_TYPE = (('icd','ICD'),)
 class FeedBack(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, blank=True, null=True)
     resion = models.CharField(max_length=100,choices=RESION_TYPE, blank=False, null=False)
