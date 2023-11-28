@@ -79,8 +79,6 @@ def index(request):
     if request.method == 'POST':
         prompt = request.POST.get('user-prompt')
         response = get_response(prompt)
-        print(prompt)
-        print(response)
         if response:
             chat = ChatHistory.objects.create(user=request.user, usermsg=prompt, display_msg=response)
             data = {"usermsg": prompt, "display_msg": response, "user": request.user.username}
