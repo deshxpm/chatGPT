@@ -78,7 +78,11 @@ def logout_view(request):
 def index(request):
     if request.method == 'POST':
         prompt = request.POST.get('user-prompt')
-        response = get_response(prompt)
+        try:
+            response = get_response(prompt)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'error': str(e)}, status=400)
         if response:
             chat = ChatHistory.objects.create(user=request.user, usermsg=prompt, display_msg=response)
             data = {"usermsg": prompt, "display_msg": response, "user": request.user.username}
