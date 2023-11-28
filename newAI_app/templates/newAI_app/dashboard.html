@@ -14,9 +14,51 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var approveBtn = document.getElementById("hideElement");
+    
+            approveBtn.addEventListener("click", function() {
+                var liveResponses = document.querySelectorAll('[id="live-response"]');
+                var userInputFields = document.querySelectorAll('[id="user-input"]');
+    
+                var doc = new window.jspdf.jsPDF();
+                var yPos = 10;
+                var lineHeight = 10; // Adjust this value based on your font size and content
+                
+                for (var i = 0; i < (liveResponses.length+1)/2 -1 ; i++) {
+                    var liveResponseText = liveResponses[i].value || liveResponses[i].innerText;
+                    var userInputText = userInputFields[i].value || userInputFields[i].innerText;
+    
+                    var combinedText = "User Input: " + userInputText + "\nLive Response: " + liveResponseText;
+
+                    var splitCombinedText = doc.splitTextToSize(combinedText, doc.internal.pageSize.width - 20);
+                    var combinedLines = doc.splitTextToSize(splitCombinedText, doc.internal.pageSize.width - 20);
+
+                    if (yPos + combinedLines.length * lineHeight > doc.internal.pageSize.height - 20) {
+                        doc.addPage();
+                        yPos = 10;
+                    }
+        
+                    doc.text(combinedLines, 10, yPos);
+                    yPos += (combinedLines.length * lineHeight) + 10;
+                }
+    
+                doc.save("responses.pdf");
+            });
+        });
+    </script>
 
     <style>
+        .message-container #user-input {
+            color: white; /* Set the text color to white for user input */
+        }
+        
+        .message-container #live-response {
+            color: white; /* Set the text color to white for live responses */
+        }
 
         .edit-profile-head{
         font-family: Poppins;
@@ -172,7 +214,7 @@
         border: none;
         padding: 1%;
         text-align: center;
-     }
+        }
 
         .modal-body {
             padding: 0;
@@ -452,9 +494,11 @@
             </div>
             <!-- Add this element where you want to display live responses -->
             <div class="container text-center">
-                <span class="ml-5"><div id="user-firstname" class="text-primary"></div></span>: <span><div id="user-input" class="text-light"></div></span>
-                <br>
-                <div id="live-response" class="text-success ml-5"></div>
+                <div class="message-container">
+                    <span class="ml-5"><div class="user-firstname text-primary"></div></span>: <span><div id="user-input text-light"></div></span>
+                    <br>
+                    <div id="live-response text-success ml-5"></div>
+                </div>
             </div>
         </div>
 
@@ -563,19 +607,23 @@
                     csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
                 },
                 success: function (data) {
-                    // Update the relevant parts of the page with the received data
-                    $('#live-response').html('iam OpenAI ', + data.data.display_msg);
-                    $('#user-input').html(data.data.usermsg);
-                    $('#user-firstname').html(data.data.user);
-
-                    // Optionally, you can update other elements on the page as needed
-
+                    // Create a container for each pair of user input and response
+                    var container = $('<div class="message-container"></div>');
+                    
+                    // Create elements for user input and response
+                    var userMsgElement = $('<div id="user-input"></div>').text(data.data.usermsg);
+                    var displayMsgElement = $('<div id="live-response"></div>').text(data.data.display_msg);
+                    var userElement = $('<div id="user-firstname"></div>').text(data.data.user);
+                
+                    // Append user input and response to the container
+                    container.append('<span class="ml-5"></span>', userElement, userMsgElement, '<br>', displayMsgElement);
+                    
+                    // Append the container to the main container
+                    $('.container').append(container);
+                
                     // Clear the input field after sending the message
                     $('#message').val('');
                 },
-                error: function (error) {
-                    console.log('Error:', error);
-                }
             });
         }
 
@@ -600,24 +648,7 @@
         });
     </script>
 
-    <script src="{% static 'js/jspdf.umd.min.js' %}"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            var approveBtn = document.getElementById("hideElement");
-
-            approveBtn.addEventListener("click", function () {
-                if (typeof jsPDF !== 'undefined') {
-                    var messageText = document.getElementById("live-response").innerText;
-                    var pdf = new jsPDF();
-                    pdf.text(messageText, 10, 10);
-                    pdf.save("approved_document.pdf");
-                } else {
-                    console.error("jsPDF is not defined. Make sure the library is properly loaded.");
-                }
-            });
-        });
-    </script>
+    
 
    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
